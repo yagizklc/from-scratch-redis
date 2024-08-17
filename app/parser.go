@@ -3,79 +3,42 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log"
-	"net"
 	"strconv"
 	"strings"
 )
 
-/*
-
-
-* = arrays
-$ = bulk strings
-
-*2\r\n$4\r\nECHO\r\n$3\r\nhey\r\n
-
-array of 2 items
-4 digit string
-ECHO
-3 digit string
-nhey
-
-
-*/
-
-func parseCommand(command []string) (string, []string, error) {
-
-	// Split the command by whitespace
-	lenParts := len(command)
-
-	// empty command
-	if lenParts < 1 {
-		return "", []string{}, fmt.Errorf("empty command")
-	}
-
-	// The first part is the command name
-	commandName := strings.ToUpper(command[0])
-
-	// check if an allowed command
-	if !validateCommand(commandName) {
-		return "", []string{}, fmt.Errorf("not allowed command name: %s", commandName)
-	}
-
-	// parse arguments
-	arguments := make([]string, 0, maxArgumentSize)
-	for _, part := range command[1:] {
-		arguments = append(arguments, string(part))
-	}
-
-	log.Printf("Parsed command: %s with arguments: %v", commandName, arguments)
-	return commandName, arguments, nil
+type Command struct {
+	Name string
+	Args []string
 }
 
-func validateCommand(command string) bool {
-	validCommands := map[string]string{"PING": "", "ECHO": "", "SET": "", "GET": ""}
-	_, ok := validCommands[command]
-	return ok
-}
-
-func readRESP(conn net.Conn) ([]string, error) {
+// reads RESP serialized command from connection, returns parts of the command
+//
+// PING = *1\r\n$4\r\nPING\r\n
+//
+// ECHO = *2\r\n$4\r\nECHO\r\n$3\r\n
+func parseCommand(conn io.Reader) (*Command, error) {
 	scanner := bufio.NewScanner(conn)
 	command := make([]string, 0, maxArgumentSize)
 
-	// get number of arguments
-	var numArgs int
-	if scanner.Scan() {
-		t := scanner.Text()
-		i, err := strconv.Atoi(t[1:])
-		if err != nil {
-			return []string{}, err
-		}
-		numArgs = i
+	// read the first line, which is the length of the command
+	if !scanner.Scan() {
+		return nil, fmt.Errorf("EOF")
 	}
 
-	// take the each second argument (first is len)
+	t := scanner.Text()
+	if t[0] != '*' {
+		return nil, fmt.Errorf("expected array")
+	}
+
+	numArgs, err := strconv.Atoi(t[1:])
+	if err != nil {
+		return nil, err
+	}
+
+	// take the each second argument (skipping the length of the argument)
 	for i := 0; i < numArgs*2 && scanner.Scan(); i++ {
 		if i%2 == 1 {
 			command = append(command, scanner.Text())
@@ -83,8 +46,12 @@ func readRESP(conn net.Conn) ([]string, error) {
 	}
 	if err := scanner.Err(); err != nil {
 		log.Println("Error reading from connection:", err)
-		return []string{}, nil
+		return nil, err
 	}
 
-	return command, nil
+	log.Printf("Read command: %v", command)
+	return &Command{
+		Name: strings.ToUpper(command[0]),
+		Args: command[1:],
+	}, nil
 }
