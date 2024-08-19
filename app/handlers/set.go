@@ -1,28 +1,13 @@
 package handlers
 
-import (
-	"bufio"
-	"fmt"
-	"os"
-)
+import ()
 
-func Set(arguments []string) ([]byte, error) {
-	file, err := os.OpenFile(dbPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return nil, err
+var db = make(map[string]string)
+
+func Set(args []string) ([]byte, error) {
+	if len(args) < 2 {
+		return []byte(RespSimpleError("ERR wrong number of arguments for 'set' command")), nil
 	}
-	defer file.Close()
-
-	writer := bufio.NewWriter(file)
-	m := fmt.Sprintf("%s %s\r\n", arguments[0], arguments[1])
-	_, err = writer.WriteString(m)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := writer.Flush(); err != nil {
-		return nil, err
-	}
-
+	db[args[0]] = args[1]
 	return []byte(RespSimpleStringEncode("OK")), nil
 }

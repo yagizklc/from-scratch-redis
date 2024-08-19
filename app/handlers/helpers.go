@@ -11,6 +11,11 @@ const dbPath = "/Users/ykc/Documents/Worksplace/learn/codecrafters-redis-go/app/
 func RespSimpleStringEncode(message string) string {
 	return fmt.Sprintf("+%s%s", message, string(crlf_delim))
 }
+
+func RespSimpleError(message string) string {
+	return fmt.Sprintf("-%s%s", message, string(crlf_delim))
+}
+
 func RespBulkStringEncode(message string) string {
-	return fmt.Sprintf("$%d%s%s%s", len(message), string(crlf_delim), message, string(crlf_delim))
+	return fmt.Sprintf("$%d\r\n%s\r\n", len(message), message)
 }

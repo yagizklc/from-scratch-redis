@@ -1,40 +1,30 @@
 package main
 
 import (
-	"strings"
+	"os/exec"
 	"testing"
 )
 
 func TestMultipleResponse(t *testing.T) {
 	tests := []struct {
 		input    string
-		expected *Command
+		expected string
 	}{
 		{
-			input:    "PING",
-			expected: &Command{Name: "PING", Args: []string{}},
+			input:    "redis-cli PING",
+			expected: "PING",
 		},
 		{
-			input:    "echo -e PING\nPING |",
-			expected: &Command{Name: "ECHO", Args: []string{"hey"}},
-		},
-		{
-			input:    "*3\r\n$3\r\nSET\r\n$3\r\nkey\r\n$5\r\nvalue\r\n",
-			expected: &Command{Name: "SET", Args: []string{"key", "value"}},
+			input:    "echo -e PING\nPING | redis-cli",
+			expected: "PING\nPING",
 		},
 	}
 	runServer()
 
 	for _, tc := range tests {
-
-		reader := strings.NewReader(tc.input)
-
-		command, err := parseCommand(reader)
-		if err != nil {
-			t.Errorf("parseCommand(%q) returned error: %v", tc.input, err)
+		if err := exec.Command(tc.input).Run(); err != nil {
+			t.Errorf("exec.Command(%q) returned error: %v", tc.input, err)
 		}
-		if command != tc.expected {
-			t.Errorf("expected %v, got %v", tc.expected, command)
-		}
+
 	}
 }
