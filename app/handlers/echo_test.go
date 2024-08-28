@@ -11,7 +11,7 @@ func TestEcho(t *testing.T) {
 		{
 			name: "no arguments",
 			args: []string{},
-			want: "Too few arguments for ECHO command: expected 1, got 0",
+			want: "too few arguments for ECHO command: expected 1, got 0",
 		},
 		{
 			name: "one argument",
@@ -21,7 +21,7 @@ func TestEcho(t *testing.T) {
 		{
 			name: "too many arguments",
 			args: []string{"arg1", "arg2"},
-			want: "Too many arguments for ECHO command: expected 1, got 2",
+			want: "too many arguments for ECHO command: expected 1, got 2",
 		},
 	}
 

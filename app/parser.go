@@ -42,8 +42,10 @@ func parseCommand(conn io.Reader) (*Command, error) {
 	for i := 0; i < numArgs*2 && scanner.Scan(); i++ {
 		if i%2 == 1 {
 			command = append(command, scanner.Text())
+
 		}
 	}
+
 	if err := scanner.Err(); err != nil {
 		log.Println("Error reading from connection:", err)
 		return nil, err

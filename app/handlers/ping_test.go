@@ -21,7 +21,7 @@ func TestPing(t *testing.T) {
 		{
 			name: "too many arguments",
 			args: []string{"arg1", "arg2"},
-			want: "Too much arguments: expected 1 or 0, got 2",
+			want: "too many arguments for PING command: expected 1 or 0, got 2",
 		},
 	}
 

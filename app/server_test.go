@@ -2,29 +2,42 @@ package main
 
 import (
 	"os/exec"
+	"strings"
 	"testing"
 )
 
 func TestMultipleResponse(t *testing.T) {
 	tests := []struct {
-		input    string
+		name     string
+		command  string
 		expected string
 	}{
 		{
-			input:    "redis-cli PING",
-			expected: "PING",
+			name:     "Single Redis Command",
+			command:  "redis-cli PING",
+			expected: "PONG",
 		},
 		{
-			input:    "echo -e PING\nPING | redis-cli",
-			expected: "PING\nPING",
+			name:     "Piped Commands",
+			command:  "echo -e 'PING\nPING' | redis-cli",
+			expected: "PONG\nPONG",
 		},
 	}
-	runServer()
+
+	go runServer()
 
 	for _, tc := range tests {
-		if err := exec.Command(tc.input).Run(); err != nil {
-			t.Errorf("exec.Command(%q) returned error: %v", tc.input, err)
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := exec.Command("sh", "-c", tc.command)
+			output, err := cmd.CombinedOutput()
+			if err != nil {
+				t.Fatalf("Command execution failed: %v", err)
+			}
 
+			result := strings.TrimSpace(string(output))
+			if result != tc.expected {
+				t.Errorf("Expected output %q, but got %q", tc.expected, result)
+			}
+		})
 	}
 }

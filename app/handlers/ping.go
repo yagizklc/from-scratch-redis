@@ -7,7 +7,7 @@ import (
 
 func Ping(arguments []string) ([]byte, error) {
 	lenArgs := len(arguments)
-	if lenArgs > 1 || lenArgs < 0 {
+	if lenArgs > 1 {
 		return nil, fmt.Errorf("too many arguments for PING command: expected 1 or 0, got %d", lenArgs)
 	}
 

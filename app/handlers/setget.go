@@ -33,3 +33,16 @@ func Set(args []string) ([]byte, error) {
 	db[args[0]] = KeyValue{value: args[1], expirationTime: expirationTime}
 	return []byte(RespSimpleStringEncode("OK")), nil
 }
+
+func Get(arguments []string) ([]byte, error) {
+	object := db[arguments[0]]
+
+	now := time.Now()
+	if object.expirationTime != (time.Time{}) && object.expirationTime.Before(now) {
+		delete(db, arguments[0])
+		return []byte(RespSimpleError("ERR key not found")), nil
+	}
+
+	encoded := RespBulkStringEncode(object.value)
+	return []byte(encoded), nil
+}
