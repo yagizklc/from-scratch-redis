@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/yagizklc/from-scratch-redis/app/pkg"
 	"strconv"
 	"testing"
 	"time"
@@ -13,19 +14,19 @@ func TestSetGet(t *testing.T) {
 	}{
 		{
 			args:     []string{"key", "value"},
-			expected: RespBulkStringEncode("value"),
+			expected: pkg.RespBulkStringEncode("value"),
 		},
 		{
 			args:     []string{"key", "value2"},
-			expected: RespBulkStringEncode("value2"),
+			expected: pkg.RespBulkStringEncode("value2"),
 		},
 		{
 			args:     []string{"key", "value3", "px", "100"},
-			expected: RespSimpleError("ERR key not found"),
+			expected: pkg.RespSimpleError("ERR key not found"),
 		},
 		{
 			args:     []string{"key", "value4", "px", "1000"},
-			expected: RespBulkStringEncode("value4"),
+			expected: pkg.RespBulkStringEncode("value4"),
 		},
 	}
 	for _, tc := range tests {

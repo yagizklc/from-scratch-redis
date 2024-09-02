@@ -1,6 +1,8 @@
-package pkg
+package pkg_test
 
 import (
+	"github.com/yagizklc/from-scratch-redis/app/handlers"
+	"github.com/yagizklc/from-scratch-redis/app/pkg"
 	"os/exec"
 	"strings"
 	"testing"
@@ -24,7 +26,8 @@ func TestMultipleResponse(t *testing.T) {
 		},
 	}
 
-	rs := NewRedisServer(HOST, PORT)
+	rs := pkg.NewRedisServer(pkg.HOST, pkg.PORT)
+	rs.Handle("ping", handlers.Ping)
 	go rs.Start()
 
 	for _, tc := range tests {

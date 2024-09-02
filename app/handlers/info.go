@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/yagizklc/from-scratch-redis/app/pkg"
 	"strings"
 )
 
@@ -25,7 +26,7 @@ func Info(args []string) ([]byte, error) {
 
 	}
 
-	return []byte(RespBulkStringEncode(response)), nil
+	return []byte(pkg.RespBulkStringEncode(response)), nil
 
 }
 

@@ -6,8 +6,6 @@ import (
 	"net"
 	"os"
 	"strings"
-
-	"github.com/yagizklc/from-scratch-redis/app/handlers"
 )
 
 type Handler func([]string) ([]byte, error)
@@ -24,10 +22,6 @@ type RedisServer struct {
 
 func NewRedisServer(host, port string) RedisServer {
 	rs := RedisServer{Host: host, Port: port, handlers: make(map[string]Handler, 0)}
-	rs.Handle("ping", handlers.Ping)
-	rs.Handle("set", handlers.Set)
-	rs.Handle("get", handlers.Get)
-	rs.Handle("echo", handlers.Echo)
 	return rs
 }
 

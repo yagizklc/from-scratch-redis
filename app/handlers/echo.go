@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/yagizklc/from-scratch-redis/app/pkg"
 )
 
 func Echo(arguments []string) ([]byte, error) {
@@ -13,5 +14,5 @@ func Echo(arguments []string) ([]byte, error) {
 		return nil, fmt.Errorf("too many arguments for ECHO command: expected 1, got %d", lenArgs)
 	}
 
-	return []byte(RespBulkStringEncode(arguments[0])), nil
+	return []byte(pkg.RespBulkStringEncode(arguments[0])), nil
 }

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/yagizklc/from-scratch-redis/app/pkg"
 	"log"
 )
 
@@ -13,9 +14,9 @@ func Ping(arguments []string) ([]byte, error) {
 
 	if lenArgs == 0 {
 		log.Println("Handling PING command with no arguments")
-		return []byte(RespSimpleStringEncode("PONG")), nil
+		return []byte(pkg.RespSimpleStringEncode("PONG")), nil
 	}
 
 	log.Printf("Handling PING command with argument: %s", arguments[0])
-	return []byte(RespSimpleStringEncode(arguments[0])), nil
+	return []byte(pkg.RespSimpleStringEncode(arguments[0])), nil
 }
