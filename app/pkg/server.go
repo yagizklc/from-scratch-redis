@@ -1,28 +1,42 @@
-package main
+package pkg
 
 import (
 	"fmt"
 	"log"
 	"net"
 	"os"
+	"strings"
 
 	"github.com/yagizklc/from-scratch-redis/app/handlers"
 )
 
-const (
-	maxRequestSize  = 1024 // Maximum request size in bytes
-	maxArgumentSize = 10   // Maximum handler args size in integer
-	HOST            = "0.0.0.0"
-	PORT            = "6379"
-)
+type Handler func([]string) ([]byte, error)
 
-func main() {
-	log.Println("Starting server...")
-	runServer()
+type Server interface {
+	Start()
 }
 
-func runServer() {
-	l, err := net.Listen("tcp", fmt.Sprintf("%s:%s", HOST, PORT))
+type RedisServer struct {
+	Port     string
+	Host     string
+	handlers map[string]Handler
+}
+
+func NewRedisServer(host, port string) RedisServer {
+	rs := RedisServer{Host: host, Port: port, handlers: make(map[string]Handler, 0)}
+	rs.Handle("ping", handlers.Ping)
+	rs.Handle("set", handlers.Set)
+	rs.Handle("get", handlers.Get)
+	rs.Handle("echo", handlers.Echo)
+	return rs
+}
+
+func (rs *RedisServer) Handle(command string, handler Handler) {
+	rs.handlers[strings.ToUpper(command)] = handler
+}
+
+func (rs *RedisServer) Start() {
+	l, err := net.Listen("tcp", fmt.Sprintf("%s:%s", rs.Host, rs.Port))
 	if err != nil {
 		log.Println("Failed to bind to port 6379:", err)
 		os.Exit(1)
@@ -38,11 +52,11 @@ func runServer() {
 		}
 		log.Println("Accepted connection from", conn.RemoteAddr())
 
-		go handleConnection(conn)
+		go rs.handleConnection(conn)
 	}
 }
 
-func handleConnection(conn net.Conn) {
+func (rs *RedisServer) handleConnection(conn net.Conn) {
 	defer conn.Close()
 
 	for {
@@ -59,24 +73,16 @@ func handleConnection(conn net.Conn) {
 		log.Printf("Received command: %s with arguments: %v\n", command.Name, command.Args)
 
 		var response []byte
-		var respErr error
-		switch command.Name {
-		case "PING":
-			response, respErr = handlers.Ping(command.Args)
-		case "ECHO":
-			response, respErr = handlers.Echo(command.Args)
-		case "SET":
-			response, respErr = handlers.Set(command.Args)
-		case "GET":
-			response, respErr = handlers.Get(command.Args)
-		default:
+		handler, ok := rs.handlers[command.Name]
+		if !ok {
 			response = []byte(fmt.Sprintf("-ERR unsupported command %s\r\n", command.Name))
-			respErr = fmt.Errorf("unsupported command: %s", command.Name)
+		} else {
+			response, err = handler(command.Args)
+			if err != nil {
+				log.Printf("Error: %v", err)
+			}
 		}
 
-		if respErr != nil {
-			log.Println("Error:", respErr)
-		}
 		log.Printf("Sending response: %v\n", string(response))
 		_, err = conn.Write(response)
 		if err != nil {

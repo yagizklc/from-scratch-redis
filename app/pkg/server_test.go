@@ -1,4 +1,4 @@
-package main
+package pkg
 
 import (
 	"os/exec"
@@ -24,7 +24,8 @@ func TestMultipleResponse(t *testing.T) {
 		},
 	}
 
-	go runServer()
+	rs := NewRedisServer(HOST, PORT)
+	go rs.Start()
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
